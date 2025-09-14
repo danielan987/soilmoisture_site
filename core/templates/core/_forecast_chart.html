@@ -1,0 +1,12 @@
+{% if error %}
+  <div class="error">{{ error }}</div>
+{% else %}
+  <div class="small muted">Rendering forecast…</div>
+  <div class="chart-wrap" style="position: relative; height: 360px;">
+    <canvas id="{{ chart_id }}" height="360"></canvas>
+  </div>
+  <!-- JSON payload (not executed); app.js will read this and render Chart.js -->
+  <script type="application/json" id="{{ chart_id }}_data">
+    {{ points_json|safe }}
+  </script>
+{% endif %}

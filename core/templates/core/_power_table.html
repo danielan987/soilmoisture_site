@@ -1,0 +1,65 @@
+{% if error %}
+  <div class="error">{{ error }}</div>
+{% else %}
+  <div class="small muted">Rows: {{ rows|length }} | Columns: {{ columns|join:", " }}</div>
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          {% for c in columns %}
+            <th>{{ c }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+          <tr>
+            <td>{{ r.date }}</td>
+            {% for v in r.values %}
+              <td>{% if v is not None %}{{ v }}{% endif %}</td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="row-inline" style="margin-top: 8px;">
+    <button
+      type="button"
+      class="btn"
+      hx-get="{% url 'core:forecast' %}"
+      hx-target="#forecast-chart"
+      hx-indicator="#loading-ind"
+      hx-vals='{
+        "lat": "{{ lat }}",
+        "lon": "{{ lon }}",
+        "start": "{{ start }}",
+        "end": "{{ end }}",
+        "parameter": "{{ parameter }}",
+        "horizon": 30
+      }'
+    >
+      Forecast 30d
+    </button>
+
+    <button
+      type="button"
+      class="btn"
+      hx-get="{% url 'core:forecast' %}"
+      hx-target="#forecast-chart"
+      hx-indicator="#loading-ind"
+      hx-vals='{
+        "lat": "{{ lat }}",
+        "lon": "{{ lon }}",
+        "start": "{{ start }}",
+        "end": "{{ end }}",
+        "parameter": "{{ parameter }}",
+        "horizon": 90
+      }'
+    >
+      Forecast 90d
+    </button>
+  </div>
+{% endif %}
