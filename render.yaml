@@ -1,3 +1,6 @@
+
+
+
 services:
   - type: web
     name: soil-moisture-django
@@ -6,18 +9,17 @@ services:
     region: oregon
     repo: https://github.com/<YOUR_GITHUB_USERNAME>/<YOUR_REPO_NAME>
     branch: main
+    healthCheckPath: /healthz
     buildCommand: |
       pip install --upgrade pip
-      PIP_ONLY_BINARY=:all: pip install -r requirements.txt
+      pip install -r requirements.txt
       python manage.py collectstatic --noinput
       python manage.py migrate
     startCommand: |
       gunicorn soilmoisture_site.wsgi:application --bind 0.0.0.0:$PORT
     envVars:
       - key: PYTHON_VERSION
-        value: 3.11.8
-      - key: PIP_ONLY_BINARY
-        value: ":all:"
+        value: 3.11.9
       - key: DJANGO_DEBUG
         value: "false"
       - key: DJANGO_SECRET_KEY
@@ -25,6 +27,14 @@ services:
       - key: ALLOWED_HOSTS
         value: "*"
       - key: CSRF_TRUSTED_ORIGINS
-        value: "https://soilmoisture-site.onrender.com"
+        value: "https://soilmoisture-site.onrender.com""https://soilmoisture-site.onrender.com"  # set to "https://<your-service>.onrender.com" after first deploy
 
-
+# Optional persistent DB:
+# databases:
+#   - name: soil-moisture-db
+#     plan: free
+# services:
+#   - type: web
+#     ...
+#     databases:
+#       - name: soil-moisture-db
