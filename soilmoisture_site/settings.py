@@ -44,8 +44,10 @@ TEMPLATES = [{
 
 WSGI_APPLICATION = "soilmoisture_site.wsgi.application"
 
+# Database: SQLite by default; Postgres if DATABASE_URL is set.
 DATABASES = {"default": {
-    "ENGINE": "django.db.backends.sqlite3", "NAME": BASE_DIR / "db.sqlite3"
+    "ENGINE": "django.db.backends.sqlite3",
+    "NAME": BASE_DIR / "db.sqlite3",
 }}
 _db_url = os.getenv("DATABASE_URL")
 if _db_url:
@@ -56,10 +58,15 @@ TIME_ZONE = "America/Toronto"
 USE_I18N = True
 USE_TZ = True
 
+# Static files
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "core" / "static"]
 
+# Ensure STATIC_ROOT directory exists before WhiteNoise initializes
+os.makedirs(STATIC_ROOT, exist_ok=True)
+
+# Use non-manifest storage in DEBUG to avoid local 500s if collectstatic not run
 if DEBUG:
     STORAGES = {"staticfiles": {"BACKEND": "whitenoise.storage.CompressedStaticFilesStorage"}}
 else:
