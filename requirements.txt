@@ -1,0 +1,6 @@
+Django==5.0.7
+requests==2.32.3
+pandas==2.2.2
+numpy==1.26.4
+prophet==1.1.5
+geopy==2.4.1

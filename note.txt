@@ -1,0 +1,15 @@
+#make file structe organized with better naming 
+# make website cleaner thats something u need to learn even with react
+
+cd /Users/daniel/Desktop/Python/Projects/ML/soilmoisture_site
+. .venv/bin/activate
+
+# find a free ephemeral port, then start Django on it
+PORT=$(python - <<'PY'
+import socket
+s=socket.socket(); s.bind(('',0))
+print(s.getsockname()[1]); s.close()
+PY
+)
+echo "Using port $PORT"
+python manage.py runserver 127.0.0.1:$PORT
