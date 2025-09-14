@@ -1,11 +1,7 @@
 from __future__ import annotations
 
 import json
-from django.http import (
-    JsonResponse,
-    HttpResponseBadRequest,
-    HttpResponse,
-)
+from django.http import JsonResponse, HttpResponseBadRequest, HttpResponse
 from django.shortcuts import render
 from django.utils.crypto import get_random_string
 from django.views.decorators.http import require_GET, require_safe
@@ -16,12 +12,10 @@ from . import services
 
 @require_safe
 def healthz(request):
-    # Responds to GET and HEAD with 200 OK, no template/static involved
     return HttpResponse("ok")
 
 
 def index(request):
-    # default 2-year window
     start, end = services.default_date_range(2)
     initial = {
         "query": "",
@@ -64,18 +58,12 @@ def power_view(request):
     try:
         df = services.fetch_power(lat, lon, start, end, f"{parameter},PRECTOTCORR,T2M,WS10M")
     except Exception as e:
-        return render(
-            request,
-            "core/_power_table.html",
-            {"error": f"POWER fetch failed: {e}", "rows": [], "columns": []},
-        )
+        return render(request, "core/_power_table.html",
+                      {"error": f"POWER fetch failed: {e}", "rows": [], "columns": []})
 
     if df.empty:
-        return render(
-            request,
-            "core/_power_table.html",
-            {"error": "No data returned.", "rows": [], "columns": []},
-        )
+        return render(request, "core/_power_table.html",
+                      {"error": "No data returned.", "rows": [], "columns": []})
 
     columns = [c for c in df.columns if c != "date"]
     rows = []
@@ -86,7 +74,7 @@ def power_view(request):
             values.append(None if services.pd.isna(v) else float(v))
         rows.append({"date": d.isoformat(), "values": values})
 
-    ctx = {
+    return render(request, "core/_power_table.html", {
         "error": "",
         "rows": rows,
         "columns": columns,
@@ -95,8 +83,7 @@ def power_view(request):
         "start": start,
         "end": end,
         "parameter": parameter,
-    }
-    return render(request, "core/_power_table.html", ctx)
+    })
 
 
 @require_GET
@@ -116,39 +103,26 @@ def forecast_view(request):
     try:
         df = services.fetch_power(lat, lon, start, end, f"{parameter},PRECTOTCORR,T2M,WS10M")
     except Exception as e:
-        return render(
-            request,
-            "core/_forecast_chart.html",
-            {"error": f"POWER fetch failed: {e}", "chart_id": get_random_string(8)},
-        )
+        return render(request, "core/_forecast_chart.html",
+                      {"error": f"POWER fetch failed: {e}", "chart_id": get_random_string(8)})
 
     try:
         series = services.build_series(df, parameter)
         forecast_points = services.make_forecast(series, horizon_days=horizon)
     except Exception as e:
-        return render(
-            request,
-            "core/_forecast_chart.html",
-            {"error": f"Forecast failed: {e}", "chart_id": get_random_string(8)},
-        )
+        return render(request, "core/_forecast_chart.html",
+                      {"error": f"Forecast failed: {e}", "chart_id": get_random_string(8)})
 
     if not forecast_points:
-        return render(
-            request,
-            "core/_forecast_chart.html",
-            {"error": "Not enough data to fit a forecast.", "chart_id": get_random_string(8)},
-        )
+        return render(request, "core/_forecast_chart.html",
+                      {"error": "Not enough data to fit a forecast.", "chart_id": get_random_string(8)})
 
     merged = services.merge_history_and_forecast(df, parameter, forecast_points)
     chart_id = f"chart_{get_random_string(8)}"
 
-    return render(
-        request,
-        "core/_forecast_chart.html",
-        {
-            "error": "",
-            "chart_id": chart_id,
-            "parameter": parameter,
-            "points_json": json.dumps(merged),
-        },
-    )
+    return render(request, "core/_forecast_chart.html", {
+        "error": "",
+        "chart_id": chart_id,
+        "parameter": parameter,
+        "points_json": json.dumps(merged),
+    })
