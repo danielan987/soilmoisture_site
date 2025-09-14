@@ -4,7 +4,7 @@ services:
     env: python
     plan: free
     region: oregon
-    repo: https://github.com/<YOUR_GITHUB_USERNAME>/<YOUR_REPO_NAME>
+    repo: https://github.com/danielan987/soilmoisture_site
     branch: main
     healthCheckPath: /healthz
     buildCommand: |
@@ -27,34 +27,47 @@ services:
         value: "https://soilmoisture-site.onrender.com"  # set to your Render URL after first deploy
 
 
-services:
-  - type: web
-    name: soil-moisture-django
-    env: python
-    plan: free
-    region: oregon
-    repo: https://github.com/<YOUR_GITHUB_USERNAME>/<YOUR_REPO_NAME>
-    branch: main
-    healthCheckPath: /healthz
-    buildCommand: |
-      pip install --upgrade pip
-      pip install -r requirements.txt
-      mkdir -p staticfiles
-      python manage.py collectstatic --noinput
-      python manage.py migrate
-    startCommand: |
-      gunicorn soilmoisture_site.wsgi:application --bind 0.0.0.0:$PORT
-    envVars:
-      - key: PYTHON_VERSION
-        value: 3.11.9
-      - key: DJANGO_DEBUG
-        value: "false"
-      - key: DJANGO_SECRET_KEY
-        generateValue: true
-      - key: ALLOWED_HOSTS
-        value: "*"
-      - key: CSRF_TRUSTED_ORIGINS
-        value: "https://soilmoisture-site.onrender.com"   # set to "https://<your-service>.onrender.com" after first deploy
+# Optional persistent DB:
+# databases:
+#   - name: soil-moisture-db
+#     plan: free
+# services:
+#   - type: web
+#     ...
+#     databases:
+#       - name: soil-moisture-db
+
+
+
+
+# services:
+#   - type: web
+#     name: soil-moisture-django
+#     env: python
+#     plan: free
+#     region: oregon
+#     repo: https://github.com/<YOUR_GITHUB_USERNAME>/<YOUR_REPO_NAME>
+#     branch: main
+#     healthCheckPath: /healthz
+#     buildCommand: |
+#       pip install --upgrade pip
+#       pip install -r requirements.txt
+#       mkdir -p staticfiles
+#       python manage.py collectstatic --noinput
+#       python manage.py migrate
+#     startCommand: |
+#       gunicorn soilmoisture_site.wsgi:application --bind 0.0.0.0:$PORT
+#     envVars:
+#       - key: PYTHON_VERSION
+#         value: 3.11.9
+#       - key: DJANGO_DEBUG
+#         value: "false"
+#       - key: DJANGO_SECRET_KEY
+#         generateValue: true
+#       - key: ALLOWED_HOSTS
+#         value: "*"
+#       - key: CSRF_TRUSTED_ORIGINS
+#         value: "https://soilmoisture-site.onrender.com"   # set to "https://<your-service>.onrender.com" after first deploy
 
 
 
