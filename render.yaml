@@ -4,11 +4,12 @@ services:
     env: python
     plan: free
     region: oregon
-    repo: https://github.com/danielan987/soilmoisture_site
+    repo: https://github.com/<YOUR_GITHUB_USERNAME>/<YOUR_REPO_NAME>
     branch: main
     buildCommand: |
       pip install --upgrade pip
-      pip install -r requirements.txt
+      # Force binary wheels to avoid source builds on NumPy/Pandas
+      PIP_ONLY_BINARY=:all: pip install -r requirements.txt
       python manage.py collectstatic --noinput
       python manage.py migrate
     startCommand: |
@@ -16,6 +17,8 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9
+      - key: PIP_ONLY_BINARY
+        value: ":all:"        # ensure wheels only on Render
       - key: DJANGO_DEBUG
         value: "false"
       - key: DJANGO_SECRET_KEY
@@ -23,8 +26,37 @@ services:
       - key: ALLOWED_HOSTS
         value: "*"
       - key: CSRF_TRUSTED_ORIGINS
-        value: "https://soilmoisture-site.onrender.com"   # set to "https://<your-service-on-render>.onrender.com"
-      # If using Postgres, set DATABASE_URL automatically via the database attachment below
+        value: "https://soilmoisture-site.onrender.com"
+
+
+
+# services:
+#   - type: web
+#     name: soil-moisture-django
+#     env: python
+#     plan: free
+#     region: oregon
+#     repo: https://github.com/danielan987/soilmoisture_site
+#     branch: main
+#     buildCommand: |
+#       pip install --upgrade pip
+#       pip install -r requirements.txt
+#       python manage.py collectstatic --noinput
+#       python manage.py migrate
+#     startCommand: |
+#       gunicorn soilmoisture_site.wsgi:application --bind 0.0.0.0:$PORT
+#     envVars:
+#       - key: PYTHON_VERSION
+#         value: 3.11.9
+#       - key: DJANGO_DEBUG
+#         value: "false"
+#       - key: DJANGO_SECRET_KEY
+#         generateValue: true
+#       - key: ALLOWED_HOSTS
+#         value: "*"
+#       - key: CSRF_TRUSTED_ORIGINS
+#         value: "https://soilmoisture-site.onrender.com"   # set to "https://<your-service-on-render>.onrender.com"
+#       # If using Postgres, set DATABASE_URL automatically via the database attachment below
 
 # Option B (Postgres): uncomment this block and re-deploy.
 # databases:
