@@ -1,0 +1,43 @@
+services:
+  - type: web
+    name: soil-moisture-django
+    env: python
+    plan: free
+    region: oregon
+    repo: https://github.com/danielan987/soilmoisture_site
+    branch: main
+    buildCommand: |
+      pip install --upgrade pip
+      pip install -r requirements.txt
+      python manage.py collectstatic --noinput
+      python manage.py migrate
+    startCommand: |
+      gunicorn soilmoisture_site.wsgi:application --bind 0.0.0.0:$PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: DJANGO_DEBUG
+        value: "false"
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: ALLOWED_HOSTS
+        value: "*"
+      - key: CSRF_TRUSTED_ORIGINS
+        value: ""   # set to "https://<your-service-on-render>.onrender.com"
+      # If using Postgres, set DATABASE_URL automatically via the database attachment below
+
+# Option B (Postgres): uncomment this block and re-deploy.
+# databases:
+#   - name: soil-moisture-db
+#     plan: free
+#     region: oregon
+#     databaseName: soilmoisture
+#     user: soiluser
+#     ipAllowList: []  # private
+#     # Render will expose DATABASE_URL to the web service automatically when linked in the dashboard or via 'render.yaml' service "databases:" key below
+#
+# services:
+#   - type: web
+#     ...
+#     databases:
+#       - name: soil-moisture-db
