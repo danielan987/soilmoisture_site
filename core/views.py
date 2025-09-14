@@ -1,13 +1,23 @@
 from __future__ import annotations
 
 import json
+from django.http import (
+    JsonResponse,
+    HttpResponseBadRequest,
+    HttpResponse,
+)
 from django.shortcuts import render
-from django.http import JsonResponse, HttpResponseBadRequest
-from django.views.decorators.http import require_GET
 from django.utils.crypto import get_random_string
+from django.views.decorators.http import require_GET, require_safe
 
 from .forms import MainForm
 from . import services
+
+
+@require_safe
+def healthz(request):
+    # Responds to GET and HEAD with 200 OK, no template/static involved
+    return HttpResponse("ok")
 
 
 def index(request):
@@ -40,10 +50,6 @@ def geocode_view(request):
 
 @require_GET
 def power_view(request):
-    """
-    Fetch NASA POWER and render HTMX partial with a table.
-    Required params: lat, lon, start, end, parameter
-    """
     try:
         lat = float(request.GET.get("lat"))
         lon = float(request.GET.get("lon"))
@@ -71,7 +77,6 @@ def power_view(request):
             {"error": "No data returned.", "rows": [], "columns": []},
         )
 
-    # Build simple table rows with aligned values to avoid dict-key access issues in templates
     columns = [c for c in df.columns if c != "date"]
     rows = []
     for d, row in df.set_index("date").iterrows():
@@ -96,11 +101,6 @@ def power_view(request):
 
 @require_GET
 def forecast_view(request):
-    """
-    Re-fetch POWER, build series, run Prophet, and render HTMX partial with Chart.js.
-    Required params: lat, lon, start, end, parameter
-    Optional: horizon (default 30)
-    """
     try:
         lat = float(request.GET.get("lat"))
         lon = float(request.GET.get("lon"))
@@ -113,7 +113,6 @@ def forecast_view(request):
     except Exception:
         return HttpResponseBadRequest("Invalid parameters")
 
-    # Fetch POWER
     try:
         df = services.fetch_power(lat, lon, start, end, f"{parameter},PRECTOTCORR,T2M,WS10M")
     except Exception as e:
@@ -123,7 +122,6 @@ def forecast_view(request):
             {"error": f"POWER fetch failed: {e}", "chart_id": get_random_string(8)},
         )
 
-    # Build series and run Prophet with robust error handling
     try:
         series = services.build_series(df, parameter)
         forecast_points = services.make_forecast(series, horizon_days=horizon)
@@ -135,7 +133,6 @@ def forecast_view(request):
         )
 
     if not forecast_points:
-        # Either insufficient points (<20) or model returned empty
         return render(
             request,
             "core/_forecast_chart.html",
@@ -152,7 +149,6 @@ def forecast_view(request):
             "error": "",
             "chart_id": chart_id,
             "parameter": parameter,
-            # Use a JSON script tag in the fragment; app.js will read and render
             "points_json": json.dumps(merged),
         },
     )
