@@ -23,7 +23,7 @@ services:
       - key: ALLOWED_HOSTS
         value: "*"
       - key: CSRF_TRUSTED_ORIGINS
-        value: ""   # set to "https://<your-service-on-render>.onrender.com"
+        value: "https://soilmoisture-site.onrender.com"   # set to "https://<your-service-on-render>.onrender.com"
       # If using Postgres, set DATABASE_URL automatically via the database attachment below
 
 # Option B (Postgres): uncomment this block and re-deploy.
