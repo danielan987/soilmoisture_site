@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Soil Moisture & Climate (Django + HTMX)</h1>
+<p class="muted">Choose location and time window, load NASA POWER data, then forecast.</p>
+
+<form id="main-form" class="card">
+  {% csrf_token %}
+
+  <div class="grid-2">
+    <div>
+      <label class="label">Search location</label>
+      <div class="row-inline">
+        <input id="q" name="query" class="input" type="text" value="{{ form.initial.query }}" placeholder='City, address, or "lat,lon"'>
+        <button type="button" class="btn" id="btn-geocode">Find</button>
+      </div>
+      <div id="geocode-msg" class="small muted"></div>
+    </div>
+
+    <div>
+      <label class="label">Selected point</label>
+      <div class="grid-3">
+        <div>
+          <div class="small">Lat</div>
+          <input id="lat" name="lat" class="input" type="number" step="0.000001" value="{{ form.initial.lat }}">
+        </div>
+        <div>
+          <div class="small">Lon</div>
+          <input id="lon" name="lon" class="input" type="number" step="0.000001" value="{{ form.initial.lon }}">
+        </div>
+        <div>
+          <div class="small">Label</div>
+          <input id="label" name="label" class="input" type="text" value="{{ form.initial.label }}">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-3">
+    <div>
+      <label class="label">Parameter</label>
+      <select id="parameter" name="parameter" class="input">
+        {% for val, text in form.fields.parameter.choices %}
+          <option value="{{ val }}"{% if val == form.initial.parameter %} selected{% endif %}>{{ text }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div>
+      <label class="label">Start (YYYYMMDD)</label>
+      <input id="start" name="start" class="input" value="{{ form.initial.start }}">
+    </div>
+
+    <div>
+      <label class="label">End (YYYYMMDD)</label>
+      <input id="end" name="end" class="input" value="{{ form.initial.end }}">
+    </div>
+  </div>
+
+  <!-- Hidden horizon field used by forecast buttons -->
+  <input type="hidden" id="horizon" name="horizon" value="30">
+
+  <div class="row-inline">
+    <!-- Remove hx-vals JS expression; rely on hx-include to send all inputs -->
+    <button
+      type="button"
+      class="btn"
+      id="btn-load"
+      hx-get="{% url 'core:power' %}"
+      hx-target="#power-table"
+      hx-indicator="#loading-ind"
+      hx-include="#main-form"
+    >
+      Load POWER data
+    </button>
+
+    <!-- Forecast 30d -->
+    <button
+      type="button"
+      class="btn"
+      id="btn-forecast-30"
+      hx-get="{% url 'core:forecast' %}"
+      hx-target="#forecast-chart"
+      hx-indicator="#loading-ind"
+      hx-include="#main-form"
+      hx-vals='{"horizon": 30}'
+    >
+      Forecast 30d
+    </button>
+
+    <!-- Forecast 90d -->
+    <button
+      type="button"
+      class="btn"
+      id="btn-forecast-90"
+      hx-get="{% url 'core:forecast' %}"
+      hx-target="#forecast-chart"
+      hx-indicator="#loading-ind"
+      hx-include="#main-form"
+      hx-vals='{"horizon": 90}'
+    >
+      Forecast 90d
+    </button>
+
+    <div id="loading-ind" class="htmx-indicator small">Loading…</div>
+  </div>
+</form>
+
+<div class="grid-2">
+  <div class="card">
+    <div class="label">Map (click to set point)</div>
+    <div id="map" style="height: 360px; border-radius: 12px;"></div>
+  </div>
+
+  <div id="power-table" class="card">
+    <div class="label">POWER table</div>
+    <div class="small muted">Load data to view table.</div>
+  </div>
+</div>
+
+<div id="forecast-chart" class="card" style="margin-top: 16px;">
+  <div class="label">Forecast chart</div>
+  <div class="small muted">Run a forecast to render the chart.</div>
+</div>
+{% endblock %}
