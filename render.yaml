@@ -27,7 +27,7 @@ services:
       - key: ALLOWED_HOSTS
         value: "*"
       - key: CSRF_TRUSTED_ORIGINS
-        value: "https://soilmoisture-site.onrender.com""https://soilmoisture-site.onrender.com"  # set to "https://<your-service>.onrender.com" after first deploy
+        value: "https://soilmoisture-site.onrender.com"
 
 # Optional persistent DB:
 # databases:
