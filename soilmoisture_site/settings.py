@@ -54,7 +54,7 @@ if _db_url:
     DATABASES["default"] = dj_database_url.parse(_db_url, conn_max_age=600, ssl_require=True)
 
 LANGUAGE_CODE = "en-us"
-TIME_ZONE = "America/Toronto"
+TIME_ZONE = "America/New_York"
 USE_I18N = True
 USE_TZ = True
 
