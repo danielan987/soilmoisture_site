@@ -1,25 +1,23 @@
 from pathlib import Path
 import os
-import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-secret-key-change-in-prod")
-DEBUG = os.getenv("DJANGO_DEBUG", "true").lower() == "true"
+# Use env var for DEBUG; default False in prod
+DEBUG = os.environ.get("DJANGO_DEBUG", "False").lower() in ["1", "true", "yes"]
 
-ALLOWED_HOSTS = [h for h in os.getenv("ALLOWED_HOSTS", "*").split(",") if h]
-_raw_csrf = os.getenv("CSRF_TRUSTED_ORIGINS", "")
-CSRF_TRUSTED_ORIGINS = [o.strip() for o in _raw_csrf.split(",") if o.strip()]
+# Allow your domains and Render preview URLs
+ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "*").split(",")
 
-INSTALLED_APPS = [
-    "django.contrib.admin", "django.contrib.auth", "django.contrib.contenttypes",
-    "django.contrib.sessions", "django.contrib.messages", "django.contrib.staticfiles",
-    "core",
-]
+# Static files (collectstatic will place files here)
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"  # must exist or be creatable
 
+# Optional but recommended if serving static from app (no CDN/proxy)
+# pip install whitenoise
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",  # add directly after SecurityMiddleware
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -28,49 +26,5 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = "soilmoisture_site.urls"
-
-TEMPLATES = [{
-    "BACKEND": "django.template.backends.django.DjangoTemplates",
-    "DIRS": [BASE_DIR / "core" / "templates"],
-    "APP_DIRS": True,
-    "OPTIONS": {"context_processors": [
-        "django.template.context_processors.debug",
-        "django.template.context_processors.request",
-        "django.contrib.auth.context_processors.auth",
-        "django.contrib.messages.context_processors.messages",
-    ]},
-}]
-
-WSGI_APPLICATION = "soilmoisture_site.wsgi.application"
-
-# Database: SQLite by default; Postgres if DATABASE_URL is set.
-DATABASES = {"default": {
-    "ENGINE": "django.db.backends.sqlite3",
-    "NAME": BASE_DIR / "db.sqlite3",
-}}
-_db_url = os.getenv("DATABASE_URL")
-if _db_url:
-    DATABASES["default"] = dj_database_url.parse(_db_url, conn_max_age=600, ssl_require=True)
-
-LANGUAGE_CODE = "en-us"
-TIME_ZONE = "America/New_York"
-USE_I18N = True
-USE_TZ = True
-
-# Static files
-STATIC_URL = "static/"
-STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_DIRS = [BASE_DIR / "core" / "static"]
-
-# Ensure STATIC_ROOT directory exists before WhiteNoise initializes
-os.makedirs(STATIC_ROOT, exist_ok=True)
-
-# Use non-manifest storage in DEBUG to avoid local 500s if collectstatic not run
-if DEBUG:
-    STORAGES = {"staticfiles": {"BACKEND": "whitenoise.storage.CompressedStaticFilesStorage"}}
-else:
-    STORAGES = {"staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"}}
-
-SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+# Enable gzip/brotli static file serving by WhiteNoise (optional)
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
