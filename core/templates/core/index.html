@@ -1,1 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+  <section>
+    <h2>Counter Demo (HTMX)</h2>
+
+    <div id="counter"
+         hx-post="{% url 'increment' %}"
+         hx-target="#counter"
+         hx-swap="outerHTML">
+      {% include "core/_counter_partial.html" with value=0 %}
+    </div>
+
+    <form id="counter-form"
+          hx-post="{% url 'increment' %}"
+          hx-target="#counter"
+          hx-swap="outerHTML"
+          class="mt-2">
+      {{ form.value }}
+      <button type="submit">Increment via Form</button>
+    </form>
+
+    <button class="mt-2"
+            hx-post="{% url 'increment' %}"
+            hx-vals='{"value": {{ 0 }} }'
+            hx-target="#counter"
+            hx-swap="outerHTML">
+      Reset to 0 then Increment
+    </button>
+  </section>
+{% endblock %}
 
