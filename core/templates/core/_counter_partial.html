@@ -1,1 +1,10 @@
+<div id="counter" class="counter">
+  <p>Value: <strong>{{ value }}</strong></p>
+  <button hx-post="{% url 'increment' %}"
+          hx-vals='{"value": {{ value|default:0 }} }'
+          hx-target="#counter"
+          hx-swap="outerHTML">
+    Increment
+  </button>
+</div>
 
