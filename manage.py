@@ -4,7 +4,6 @@ import sys
 from pathlib import Path
 from dotenv import load_dotenv
 
-# Load .env for local development; in Render, env vars are injected automatically.
 env_path = Path(__file__).resolve().parent / ".env"
 if env_path.exists():
     load_dotenv(env_path)
