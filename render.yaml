@@ -1,30 +1,84 @@
+
+---
+
+## render.yaml
+```yaml
 services:
   - type: web
-    name: soil-moisture-django
+    name: django-htmx-web
     env: python
-    plan: free
     region: oregon
-    repo: https://github.com/danielan987/soilmoisture_site
-    branch: main
-    healthCheckPath: /healthz
-    buildCommand: |
-      pip install --upgrade pip
-      pip install -r requirements.txt
-      mkdir -p staticfiles
-      python manage.py collectstatic --noinput
-      python manage.py migrate --noinput
-    startCommand: ./scripts/start.sh
+    plan: free
+    buildCommand: ./\.render-build.sh
+    startCommand: gunicorn htmx_site.wsgi:application
+    autoDeploy: true
     envVars:
-      - key: PYTHON_VERSION
-        value: 3.11.9
+      - key: DATABASE_URL
+        fromDatabase:
+          name: django-htmx-db
+          property: connectionString
+      - key: DJANGO_SECRET_KEY
+        sync: false
       - key: DJANGO_DEBUG
         value: "false"
-      - key: DJANGO_SECRET_KEY
-        generateValue: true
       - key: ALLOWED_HOSTS
-        value: "*"
+        fromService:
+          name: django-htmx-web
+          type: web
+          property: host
       - key: CSRF_TRUSTED_ORIGINS
-        value: "https://soilmoisture-site.onrender.com"  # set to your Render URL after first deploy
+        fromService:
+          name: django-htmx-web
+          type: web
+          property: url
+      - key: PYTHON_VERSION
+        value: "3.11.9"
+    postDeployCommand: ./\.render-postdeploy.sh
+
+databases:
+  - name: django-htmx-db
+    plan: free
+
+
+
+
+
+
+
+
+
+# services:
+#   - type: web
+#     name: soil-moisture-django
+#     env: python
+#     plan: free
+#     region: oregon
+#     repo: https://github.com/danielan987/soilmoisture_site
+#     branch: main
+#     healthCheckPath: /healthz
+#     buildCommand: |
+#       pip install --upgrade pip
+#       pip install -r requirements.txt
+#       mkdir -p staticfiles
+#       python manage.py collectstatic --noinput
+#       python manage.py migrate --noinput
+#     startCommand: ./scripts/start.sh
+#     envVars:
+#       - key: PYTHON_VERSION
+#         value: 3.11.9
+#       - key: DJANGO_DEBUG
+#         value: "false"
+#       - key: DJANGO_SECRET_KEY
+#         generateValue: true
+#       - key: ALLOWED_HOSTS
+#         value: "*"
+#       - key: CSRF_TRUSTED_ORIGINS
+#         value: "https://soilmoisture-site.onrender.com"  # set to your Render URL after first deploy
+
+
+
+
+
 
 
 # Optional persistent DB:
